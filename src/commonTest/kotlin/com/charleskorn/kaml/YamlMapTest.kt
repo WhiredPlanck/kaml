@@ -113,7 +113,7 @@ class YamlMapTest : FlatFunSpec({
 
             context("comparing it to another map with the same items in the same order with a different path") {
                 test("indicates that they are equivalent") {
-                    map.equivalentContentTo(YamlMap(map.entries, YamlPath.root.withListEntry(0, Location(3, 4)))) shouldBe true
+                    map.equivalentContentTo(YamlMap(map.content, YamlPath.root.withListEntry(0, Location(3, 4)))) shouldBe true
                 }
             }
 
@@ -242,17 +242,17 @@ class YamlMapTest : FlatFunSpec({
 
             context("the key is not in the map") {
                 test("returns null") {
-                    map.get<YamlScalar>("something else") shouldBe null
+                    map.getAs<YamlScalar>("something else") shouldBe null
                 }
             }
 
             context("the key is in the map") {
                 test("returns the value for that key") {
-                    map.get<YamlScalar>("hello") shouldBe YamlScalar("world", helloValuePath)
+                    map.getAs<YamlScalar>("hello") shouldBe YamlScalar("world", helloValuePath)
                 }
                 test("throws IncorrectTypeException with clear message when the type mismatches") {
                     val exception = shouldThrow<IncorrectTypeException> {
-                        map.get<YamlList>("hello")
+                        map.getAs<YamlList>("hello")
                     }
 
                     exception.asClue {

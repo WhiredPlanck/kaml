@@ -25,7 +25,7 @@ import kotlinx.serialization.modules.SerializersModule
 
 @OptIn(ExperimentalSerializationApi::class)
 internal class YamlMapInput(map: YamlMap, yaml: Yaml, context: SerializersModule, configuration: YamlConfiguration) : YamlMapLikeInputBase(map, yaml, context, configuration) {
-    private val entriesList = map.entries.entries.toList()
+    private val entriesList = map.content.entries.toList()
     private var nextIndex = 0
     private lateinit var currentEntry: Map.Entry<YamlScalar, YamlNode>
 
