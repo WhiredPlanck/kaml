@@ -176,7 +176,7 @@ public sealed class YamlInput(
         }
 
         private fun YamlMap.withoutKey(key: String): YamlMap {
-            return this.copy(entries = entries.filterKeys { it.content != key })
+            return this.copy(content = content.filterKeys { it.content != key })
         }
 
         private val SerialDescriptor.isContentBasedPolymorphic get() = annotations.any { it is YamlContentPolymorphicSerializer.Marker }

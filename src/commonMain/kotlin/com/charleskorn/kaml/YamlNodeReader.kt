@@ -187,7 +187,7 @@ internal class YamlNodeReader(
                     is YamlList -> throw MalformedYamlException("Cannot merge a list value into a map.", other.path)
                     is YamlTaggedNode -> throw MalformedYamlException("Cannot merge a tagged value into a map.", other.path)
                     is YamlMap ->
-                        other.entries.forEach { (key, value) ->
+                        other.content.forEach { (key, value) ->
                             val existingEntry = merged.entries.singleOrNull { it.key.equivalentContentTo(key) }
 
                             if (existingEntry == null) {

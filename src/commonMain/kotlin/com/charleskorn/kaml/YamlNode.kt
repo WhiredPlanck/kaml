@@ -135,7 +135,7 @@ public data class YamlNull(override val path: YamlPath) : YamlNode(path) {
 }
 
 @Serializable(with = YamlListSerializer::class)
-public data class YamlList(val items: List<YamlNode>, override val path: YamlPath) : YamlNode(path) {
+public data class YamlList(val items: List<YamlNode>, override val path: YamlPath) : YamlNode(path), List<YamlNode> by items {
     override fun equivalentContentTo(other: YamlNode): Boolean {
         if (other !is YamlList) {
             return false
@@ -147,8 +147,6 @@ public data class YamlList(val items: List<YamlNode>, override val path: YamlPat
 
         return this.items.zip(other.items).all { (mine, theirs) -> mine.equivalentContentTo(theirs) }
     }
-
-    public operator fun get(index: Int): YamlNode = items[index]
 
     override fun contentToString(): String = "[" + items.joinToString(", ") { it.contentToString() } + "]"
 
@@ -177,9 +175,9 @@ public data class YamlList(val items: List<YamlNode>, override val path: YamlPat
 }
 
 @Serializable(with = YamlMapSerializer::class)
-public data class YamlMap(val entries: Map<YamlScalar, YamlNode>, override val path: YamlPath) : YamlNode(path) {
+public data class YamlMap(val content: Map<YamlScalar, YamlNode>, override val path: YamlPath) : YamlNode(path), Map<String, YamlNode> {
     init {
-        val keys = entries.keys.sortedWith { a, b ->
+        val keys = content.keys.sortedWith { a, b ->
             val lineComparison = a.location.line.compareTo(b.location.line)
 
             if (lineComparison != 0) {
@@ -206,27 +204,35 @@ public data class YamlMap(val entries: Map<YamlScalar, YamlNode>, override val p
             return false
         }
 
-        if (this.entries.size != other.entries.size) {
+        if (this.content.size != other.content.size) {
             return false
         }
 
-        return this.entries.all { (thisKey, thisValue) ->
-            other.entries.any { it.key.equivalentContentTo(thisKey) && it.value.equivalentContentTo(thisValue) }
+        return this.content.all { (thisKey, thisValue) ->
+            other.content.any { it.key.equivalentContentTo(thisKey) && it.value.equivalentContentTo(thisValue) }
         }
     }
 
     override fun contentToString(): String =
-        "{" + entries.map { (key, value) -> "${key.contentToString()}: ${value.contentToString()}" }.joinToString(", ") + "}"
+        "{" + content.map { (key, value) -> "${key.contentToString()}: ${value.contentToString()}" }.joinToString(", ") + "}"
+
+    /**
+     * Returns the value corresponding to the given key and the given type,
+     * or null if such a key is not present in the map.
+     */
+    public override operator fun get(key: String): YamlNode? {
+        return content.entries
+            .firstOrNull { it.key.content == key }
+            ?.value // no such key in the map
+    }
 
     /**
      * Returns the value corresponding to the given key and the given type,
      * or null if such a key is not present in the map,
      * or throws [IncorrectTypeException] if the value is not the given type.
      */
-    public inline operator fun <reified T : YamlNode> get(key: String): T? {
-        val node = entries.entries
-            .firstOrNull { it.key.content == key }
-            ?.value ?: return null // no such key in the map
+    public inline fun <reified T : YamlNode> getAs(key: String): T? {
+        val node = get(key) ?: return null
         // if the value is not the given type,
         // throws IncorrectTypeException with a clear message instead of ClassCastException.
         return node as? T ?: throw IncorrectTypeException(
@@ -235,28 +241,52 @@ public data class YamlMap(val entries: Map<YamlScalar, YamlNode>, override val p
         )
     }
 
-    public fun getScalar(key: String): YamlScalar? = when (val node = get<YamlNode>(key)) {
+    public fun getScalar(key: String): YamlScalar? = when (val node = get(key)) {
         null -> null
         is YamlScalar -> node
         else -> throw IncorrectTypeException("Value for '$key' is not a scalar.", node.path)
     }
 
-    public fun getKey(key: String): YamlScalar? = entries.keys.singleOrNull { it.content == key }
+    public fun getKey(key: String): YamlScalar? = content.keys.singleOrNull { it.content == key }
 
     override fun withPath(newPath: YamlPath): YamlMap {
-        val updatedEntries = entries
+        val updatedEntries = content
             .mapKeys { (k, _) -> k.withPath(replacePathOnChild(k, newPath)) }
             .mapValues { (_, v) -> v.withPath(replacePathOnChild(v, newPath)) }
 
         return YamlMap(updatedEntries, newPath)
     }
 
+    override val size: Int
+        get() = content.size
+
+    override fun isEmpty(): Boolean {
+        return content.isEmpty()
+    }
+
+    override fun containsKey(key: String): Boolean {
+        return getKey(key) != null
+    }
+
+    override fun containsValue(value: YamlNode): Boolean {
+        return content.containsValue(value)
+    }
+
+    override val keys: Set<String>
+        get() = content.keys.map { it.toString() }.toSet()
+
+    override val values: Collection<YamlNode>
+        get() = content.values
+
+    override val entries: Set<Map.Entry<String, YamlNode>>
+        get() = content.mapKeys { (k, _) -> k.contentToString() }.entries
+
     override fun toString(): String {
         val builder = StringBuilder()
 
-        builder.appendLine("map @ $path (size: ${entries.size})")
+        builder.appendLine("map @ $path (size: ${content.size})")
 
-        entries.forEach { (key, value) ->
+        content.forEach { (key, value) ->
             builder.appendLine("- key:")
 
             key.toString().lines().forEach { line ->
