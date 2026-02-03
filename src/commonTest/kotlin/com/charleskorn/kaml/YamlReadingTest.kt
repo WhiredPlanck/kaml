@@ -1009,12 +1009,12 @@ class YamlReadingTest : FlatFunSpec({
 
                 test("deserializes map") {
                     result.node.content shouldHaveSize 5
-                    result.node.getAs<YamlScalar>("foo1")!!.content shouldBe "bar"
-                    result.node.getAs<YamlNull>("foo2").shouldBeInstanceOf<YamlNull>()
-                    result.node.getAs<YamlScalar>("foo3")!!.toDouble() shouldBe 3.14
-                    result.node.getAs<YamlList>("foo4")!!.items.map { it.yamlScalar.toInt() } shouldBe listOf(1, 2, 3)
-                    result.node.getAs<YamlMap>("foo5")!!.getAs<YamlScalar>("element1")!!.toInt() shouldBe 1
-                    result.node.getAs<YamlMap>("foo5")!!.getAs<YamlScalar>("element2")!!.toInt() shouldBe 2
+                    result.node["foo1"]!!.yamlScalar.content shouldBe "bar"
+                    result.node["foo2"]?.yamlNull.shouldBeInstanceOf<YamlNull>()
+                    result.node["foo3"]!!.yamlScalar.toDouble() shouldBe 3.14
+                    result.node["foo4"]!!.yamlList.map { it.yamlScalar.toInt() } shouldBe listOf(1, 2, 3)
+                    result.node["foo5"]!!.yamlMap["element1"]!!.yamlScalar.toInt() shouldBe 1
+                    result.node["foo5"]!!.yamlMap["element2"]!!.yamlScalar.toInt() shouldBe 2
                 }
             }
 
@@ -1028,12 +1028,12 @@ class YamlReadingTest : FlatFunSpec({
                 test("deserializes node to double list") {
                     val node = result.node.yamlMap
                     node.content shouldHaveSize 5
-                    node.getAs<YamlScalar>("foo1")!!.content shouldBe "bar"
-                    node.getAs<YamlNull>("foo2").shouldBeInstanceOf<YamlNull>()
-                    node.getAs<YamlScalar>("foo3")!!.toDouble() shouldBe 3.14
-                    node.getAs<YamlList>("foo4")!!.items.map { it.yamlScalar.toInt() } shouldBe listOf(1, 2, 3)
-                    node.getAs<YamlMap>("foo5")!!.getAs<YamlScalar>("element1")!!.toInt() shouldBe 1
-                    node.getAs<YamlMap>("foo5")!!.getAs<YamlScalar>("element2")!!.toInt() shouldBe 2
+                    node["foo1"]!!.yamlScalar.content shouldBe "bar"
+                    node["foo2"]?.yamlNull.shouldBeInstanceOf<YamlNull>()
+                    node["foo3"]?.yamlScalar!!.toDouble() shouldBe 3.14
+                    node["foo4"]?.yamlList!!.map { it.yamlScalar.toInt() } shouldBe listOf(1, 2, 3)
+                    node["foo5"]!!.yamlMap["element1"]!!.yamlScalar.toInt() shouldBe 1
+                    node["foo5"]!!.yamlMap["element2"]!!.yamlScalar.toInt() shouldBe 2
                 }
             }
         }

@@ -242,17 +242,17 @@ class YamlMapTest : FlatFunSpec({
 
             context("the key is not in the map") {
                 test("returns null") {
-                    map.getAs<YamlScalar>("something else") shouldBe null
+                    map["something else"]?.yamlScalar shouldBe null
                 }
             }
 
             context("the key is in the map") {
                 test("returns the value for that key") {
-                    map.getAs<YamlScalar>("hello") shouldBe YamlScalar("world", helloValuePath)
+                    map["hello"]?.yamlScalar shouldBe YamlScalar("world", helloValuePath)
                 }
                 test("throws IncorrectTypeException with clear message when the type mismatches") {
                     val exception = shouldThrow<IncorrectTypeException> {
-                        map.getAs<YamlList>("hello")
+                        map["hello"]?.yamlList
                     }
 
                     exception.asClue {
