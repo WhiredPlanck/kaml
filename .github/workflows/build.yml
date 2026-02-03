@@ -23,7 +23,7 @@ jobs:
             tasks: check
           - os: windows-latest
             tasks: mingwX64Test
-          - os: macos-13
+          - os: macos-15-intel
             tasks: macosX64Test iosX64Test tvosX64Test watchosX64Test
           - os: macos-latest
             tasks: macosArm64Test iosSimulatorArm64Test tvosSimulatorArm64Test watchosSimulatorArm64Test
