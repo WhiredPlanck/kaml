@@ -226,21 +226,6 @@ public data class YamlMap(val content: Map<YamlScalar, YamlNode>, override val p
             ?.value // no such key in the map
     }
 
-    /**
-     * Returns the value corresponding to the given key and the given type,
-     * or null if such a key is not present in the map,
-     * or throws [IncorrectTypeException] if the value is not the given type.
-     */
-    public inline fun <reified T : YamlNode> getAs(key: String): T? {
-        val node = get(key) ?: return null
-        // if the value is not the given type,
-        // throws IncorrectTypeException with a clear message instead of ClassCastException.
-        return node as? T ?: throw IncorrectTypeException(
-            "Expected element to be ${T::class.simpleName} but is ${node::class.simpleName}",
-            node.path,
-        )
-    }
-
     public fun getScalar(key: String): YamlScalar? = when (val node = get(key)) {
         null -> null
         is YamlScalar -> node
