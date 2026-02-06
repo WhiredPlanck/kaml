@@ -304,7 +304,7 @@ class YamlReadingTest : FlatFunSpec({
 
             context("parsing that input as a list node") {
                 val result = Yaml.default.decodeFromString(TestClassWithNestedList.serializer(), input)
-                val resultList = result.node.items.map { if (it is YamlNull) null else it.yamlScalar.toDouble() }
+                val resultList = result.node.map { if (it is YamlNull) null else it.yamlScalar.toDouble() }
 
                 test("deserializes list") {
                     resultList shouldBe listOf(1.2, 3.0, Double.POSITIVE_INFINITY, null)
@@ -319,7 +319,7 @@ class YamlReadingTest : FlatFunSpec({
                 }
 
                 test("deserializes node to double list") {
-                    val resultList = result.node.yamlList.items.map { if (it is YamlNull) null else it.yamlScalar.toDouble() }
+                    val resultList = result.node.yamlList.map { if (it is YamlNull) null else it.yamlScalar.toDouble() }
                     resultList shouldBe listOf(1.2, 3.0, Double.POSITIVE_INFINITY, null)
                 }
             }
@@ -1008,7 +1008,7 @@ class YamlReadingTest : FlatFunSpec({
                 val result = Yaml.default.decodeFromString(TestClassWithNestedMap.serializer(), input)
 
                 test("deserializes map") {
-                    result.node.content shouldHaveSize 5
+                    result.node shouldHaveSize 5
                     result.node["foo1"]!!.yamlScalar.content shouldBe "bar"
                     result.node["foo2"]?.yamlNull.shouldBeInstanceOf<YamlNull>()
                     result.node["foo3"]!!.yamlScalar.toDouble() shouldBe 3.14
@@ -1027,7 +1027,7 @@ class YamlReadingTest : FlatFunSpec({
 
                 test("deserializes node to double list") {
                     val node = result.node.yamlMap
-                    node.content shouldHaveSize 5
+                    node shouldHaveSize 5
                     node["foo1"]!!.yamlScalar.content shouldBe "bar"
                     node["foo2"]?.yamlNull.shouldBeInstanceOf<YamlNull>()
                     node["foo3"]?.yamlScalar!!.toDouble() shouldBe 3.14
@@ -2310,7 +2310,7 @@ class YamlReadingTest : FlatFunSpec({
 
                     override fun deserialize(decoder: Decoder): List<Database> {
                         check(decoder is YamlInput)
-                        return decoder.node.yamlMap.content.map { (_, value) ->
+                        return decoder.node.yamlMap.map { (_, value) ->
                             decoder.yaml.decodeFromYamlNode(Database.serializer(), value)
                         }
                     }
@@ -2476,7 +2476,7 @@ private object DecodingFromYamlNodeSerializer : KSerializer<DatabaseListing> {
     override fun deserialize(decoder: Decoder): DatabaseListing {
         check(decoder is YamlInput)
 
-        val list = decoder.node.yamlMap.content.map { (_, value) ->
+        val list = decoder.node.yamlMap.map { (_, value) ->
             decoder.yaml.decodeFromYamlNode(Database.serializer(), value)
         }
 
@@ -2510,7 +2510,7 @@ private object SerializerForObjectWithCustomSerializer : KSerializer<ObjectWithC
         check(decoder is YamlInput)
 
         // Intentionally parse the values from the current yaml node
-        val values = decoder.node.yamlList.items
+        val values = decoder.node.yamlList
             .map { it.yamlScalar.content }
 
         return ObjectWithCustomSerializer(values.joinToString(ValuesSeparator))
