@@ -135,7 +135,7 @@ public data class YamlNull(override val path: YamlPath) : YamlNode(path) {
 }
 
 @Serializable(with = YamlListSerializer::class)
-public data class YamlList(val items: List<YamlNode>, override val path: YamlPath) : YamlNode(path), List<YamlNode> by items {
+public data class YamlList(private val items: List<YamlNode>, override val path: YamlPath) : YamlNode(path), List<YamlNode> by items {
     override fun equivalentContentTo(other: YamlNode): Boolean {
         if (other !is YamlList) {
             return false
@@ -175,7 +175,7 @@ public data class YamlList(val items: List<YamlNode>, override val path: YamlPat
 }
 
 @Serializable(with = YamlMapSerializer::class)
-public data class YamlMap(val content: Map<YamlScalar, YamlNode>, override val path: YamlPath) : YamlNode(path), Map<String, YamlNode> {
+public data class YamlMap(private val content: Map<YamlScalar, YamlNode>, override val path: YamlPath) : YamlNode(path), Map<YamlScalar, YamlNode> by content {
     init {
         val keys = content.keys.sortedWith { a, b ->
             val lineComparison = a.location.line.compareTo(b.location.line)
@@ -220,7 +220,7 @@ public data class YamlMap(val content: Map<YamlScalar, YamlNode>, override val p
      * Returns the value corresponding to the given key and the given type,
      * or null if such a key is not present in the map.
      */
-    public override operator fun get(key: String): YamlNode? {
+    public operator fun get(key: String): YamlNode? {
         return content.entries
             .firstOrNull { it.key.content == key }
             ?.value // no such key in the map
@@ -241,30 +241,6 @@ public data class YamlMap(val content: Map<YamlScalar, YamlNode>, override val p
 
         return YamlMap(updatedEntries, newPath)
     }
-
-    override val size: Int
-        get() = content.size
-
-    override fun isEmpty(): Boolean {
-        return content.isEmpty()
-    }
-
-    override fun containsKey(key: String): Boolean {
-        return getKey(key) != null
-    }
-
-    override fun containsValue(value: YamlNode): Boolean {
-        return content.containsValue(value)
-    }
-
-    override val keys: Set<String>
-        get() = content.keys.map { it.toString() }.toSet()
-
-    override val values: Collection<YamlNode>
-        get() = content.values
-
-    override val entries: Set<Map.Entry<String, YamlNode>>
-        get() = content.mapKeys { (k, _) -> k.contentToString() }.entries
 
     override fun toString(): String {
         val builder = StringBuilder()

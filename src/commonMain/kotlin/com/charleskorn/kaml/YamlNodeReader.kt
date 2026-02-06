@@ -163,7 +163,7 @@ internal class YamlNodeReader(
         when (mergeEntries.count()) {
             0 -> return items
             1 -> when (val mappingsToMerge = mergeEntries.single().value) {
-                is YamlList -> return doMerges(items, mappingsToMerge.items)
+                is YamlList -> return doMerges(items, mappingsToMerge)
                 else -> return doMerges(items, listOf(mappingsToMerge))
             }
             else -> throw MalformedYamlException("Cannot perform multiple '<<' merges into a map. Instead, combine all merges into a single '<<' entry.", mergeEntries.second().key.path)
@@ -177,7 +177,7 @@ internal class YamlNodeReader(
 
         original
             .filterNot { (key, _) -> isMerge(key) }
-            .forEach { (key, value) -> merged.put(key, value) }
+            .forEach { (key, value) -> merged[key] = value }
 
         others
             .forEach { other ->
@@ -187,11 +187,11 @@ internal class YamlNodeReader(
                     is YamlList -> throw MalformedYamlException("Cannot merge a list value into a map.", other.path)
                     is YamlTaggedNode -> throw MalformedYamlException("Cannot merge a tagged value into a map.", other.path)
                     is YamlMap ->
-                        other.content.forEach { (key, value) ->
+                        other.forEach { (key, value) ->
                             val existingEntry = merged.entries.singleOrNull { it.key.equivalentContentTo(key) }
 
                             if (existingEntry == null) {
-                                merged.put(key, value)
+                                merged[key] = value
                             }
                         }
                 }
