@@ -87,6 +87,12 @@ public class Yaml(
         return node
     }
 
+    public fun <T> encodeToYamlNode(serializer: SerializationStrategy<T>, value: T): YamlNode {
+        val buffer = Buffer()
+        encodeToBufferedSink(serializer, value, buffer)
+        return parseToYamlNode(buffer)
+    }
+
     public inline fun <reified T> encodeToSink(value: T, sink: Sink): Unit =
         encodeToSink(serializersModule.serializer<T>(), value, sink)
 
@@ -117,7 +123,7 @@ public class Yaml(
         sink: BufferedSink,
     ) {
         BufferedSinkDataWriter(sink).use { writer ->
-            YamlOutput(writer, serializersModule, configuration).use { output ->
+            YamlOutput(writer, this@Yaml, serializersModule, configuration).use { output ->
                 output.encodeSerializableValue(serializer, value)
             }
         }
