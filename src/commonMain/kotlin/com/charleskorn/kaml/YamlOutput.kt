@@ -46,6 +46,7 @@ import kotlinx.serialization.modules.SerializersModule
 @OptIn(ExperimentalSerializationApi::class, ExperimentalStdlibApi::class)
 internal class YamlOutput(
     writer: StreamDataWriter,
+    val yaml: Yaml,
     override val serializersModule: SerializersModule,
     private val configuration: YamlConfiguration,
 ) : AbstractEncoder(), AutoCloseable {
